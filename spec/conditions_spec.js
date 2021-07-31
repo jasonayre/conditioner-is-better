@@ -123,6 +123,37 @@ describe('Conditions', function() {
       ]
 
       expect(matchesConditions(subject, conditions)).toEqual(false);
+
+      conditions = [
+        {all: {name: {includes: 'pac'}}}
+      ]
+
+      expect(matchesConditions(subject, conditions)).toEqual(true);
+
+      conditions = [
+        {all: {name: {includes: ['tu', 'pac']}}}
+      ]
+
+      expect(matchesConditions(subject, conditions)).toEqual(true);
+
+      conditions = [
+        {all: {name: {includes: ['tu', 'pac']}}},
+        {all: {name: {doesNotInclude: ['tup']}}}
+      ]
+
+      expect(matchesConditions(subject, conditions)).toEqual(false);
+
+      conditions = [
+        {all: {name: {startsWith: ['tu']}}}
+      ]
+
+      expect(matchesConditions(subject, conditions)).toEqual(true);
+
+      conditions = [
+        {all: {name: {endsWith: ['pac']}}}
+      ]
+
+      expect(matchesConditions(subject, conditions)).toEqual(true);
     })
 
   })
@@ -158,12 +189,27 @@ describe('Conditions', function() {
       conditions = [{all: {traits: 'poet'}}]
       expect(where(subject, conditions).length).toEqual(2);
 
+
+    });
+
+    it("stringDirectives", function() {
+      conditions = [{all: {name: {includes: 'z'}}}]
+      expect(where(subject, conditions).length).toEqual(0);
+
+      conditions = [{all: {zone: {includes: 'e'},}}]
+      expect(where(subject, conditions).length).toEqual(2);
+
+      conditions = [{all: {zone: {includes: 'e'}}}]
+      expect(where(subject, conditions).length).toEqual(2);
+    })
+
+    it("numeric", function() {
       conditions = [{all: {attack: {gt: 5}}}]
       expect(where(subject, conditions)[0].name).toEqual('tupac');
       expect(where(subject, conditions).length).toEqual(1);
 
       conditions = [{all: {attack: {gt: 5}, zone: 'east'}}]
       expect(where(subject, conditions).length).toEqual(0);
-    });
+    })
   })
 });

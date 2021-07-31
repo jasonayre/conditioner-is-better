@@ -1,12 +1,24 @@
-### Conditioner Is better
+### Conditioner Is Better
 
-A simple, powerful, and relatively fast, condition matching DSL / Array search.
+A simple, powerful, and relatively fast, condition matching DSL / Array search. Abstracted from the rules engine of [DarkMatterGame](http://www.playdarkmatter.com)
 
-Examples:
+Inspired by https://github.com/deitch/searchjs , ConditionerIsBetter supports most of the basic functionality of that library, and a similar/simpler DSL - But is at least 100-1000x faster (Can't remember exactly, I did the benchmark awhile back while writing this code to replace the use of searchjs validating actions and rules in the game engine ^, as it was a huge performance bottleneck)
+
+Library consists of 2 simple functions, *where* and *matchesConditions*
+
+Examples from the specs:
 
 #### matchesConditions
 ```
 import {matchesConditions} from 'conditioner-is-better';
+
+subject = {
+  name: 'tupac',
+  traits: ['poet', 'warrior'],
+  targets: [ {type: 'character', attack: 1}, {type: 'character', attack: 2} ],
+  zone: 'units',
+  attack: 10
+}
 
 conditions = [{ any: { zone: ['units', 'structures'] }}];
 expect(matchesConditions(subject, conditions)).toEqual(true);
@@ -114,6 +126,37 @@ conditions = [
 ]
 
 expect(matchesConditions(subject, conditions)).toEqual(false);
+
+conditions = [
+  {all: {name: {includes: 'pac'}}}
+]
+
+expect(matchesConditions(subject, conditions)).toEqual(true);
+
+conditions = [
+  {all: {name: {includes: ['tu', 'pac']}}}
+]
+
+expect(matchesConditions(subject, conditions)).toEqual(true);
+
+conditions = [
+  {all: {name: {includes: ['tu', 'pac']}}},
+  {all: {name: {doesNotInclude: ['tup']}}}
+]
+
+expect(matchesConditions(subject, conditions)).toEqual(false);
+
+conditions = [
+  {all: {name: {startsWith: ['tu']}}}
+]
+
+expect(matchesConditions(subject, conditions)).toEqual(true);
+
+conditions = [
+  {all: {name: {endsWith: ['pac']}}}
+]
+
+expect(matchesConditions(subject, conditions)).toEqual(true);
 ```
 
 #### where
@@ -149,4 +192,21 @@ expect(where(subject, conditions).length).toEqual(1);
 
 conditions = [{all: {attack: {gt: 5}, zone: 'east'}}]
 expect(where(subject, conditions).length).toEqual(0);
+
+conditions = [{all: {name: {includes: 'z'}}}]
+expect(where(subject, conditions).length).toEqual(0);
+
+conditions = [{all: {zone: {includes: 'e'}}}]
+expect(where(subject, conditions).length).toEqual(2);
 ```
+
+### Special Directives
+
+As shown above, when comparing numeric values, you can pass an object as the value, i.e.
+`{all: {cost: {gt: 2}}}`, which allows you to use the following directives as keys:
+
+`gt, lt, gte, lte`
+
+The same goes for strings, but the directives are:
+
+`includes, doesNotInclude, startsWith, endsWith, doesNotStartWith, doesNotEndWith`

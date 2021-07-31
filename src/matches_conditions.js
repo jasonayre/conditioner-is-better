@@ -18,6 +18,7 @@ import first from 'lodash/first';
 import isFunction from 'lodash/isFunction';
 import isUndefined from 'lodash/isUndefined';
 import startsWith from 'lodash/startsWith';
+import endsWith from 'lodash/endsWith';
 
 // import {includes, isArray, isString, isNumber, isBoolean, some, every, map, keys, values,
 //   get, gt, gte, lt, lte, isObject, first, isFunction, isUndefined} from 'lodash';
@@ -50,6 +51,35 @@ const KEYS_FOR_COMPARISON = ["gt", "gte", "lt", "lte"];
 
 function isComparison(obj) {
   return includes(KEYS_FOR_COMPARISON, keys(obj)[0]);
+}
+
+function doesNotInclude(source, v) { return !includes(source, v) }
+function doesNotStartWith(source, v) { return !startsWith(source, v) }
+function doesNotEndWith(source, v) { return !endsWith(source, v) }
+
+const STRING_DIRECTIVES = {
+  includes,
+  doesNotInclude,
+  startsWith,
+  endsWith,
+  doesNotStartWith,
+  doesNotEndWith
+}
+
+const KEYS_FOR_STRING_DIRECTIVES = ["includes", "doesNotInclude", "startsWith", "endsWith", "doesNotStartWith", "doesNotEndWith"];
+
+function isStringDirective(obj) {
+  return includes(KEYS_FOR_STRING_DIRECTIVES, keys(obj)[0]);
+}
+
+function matchesStringDirective(string_directives, source) {
+  return every(string_directives, (v, k) => {
+    if(isArray(v)) {
+      return every(v, (_v) => { return STRING_DIRECTIVES[k](source, _v) });
+    } else {
+      return STRING_DIRECTIVES[k](source, v);
+    }
+  })
 }
 
 export class InvertedMatcher {
@@ -89,6 +119,8 @@ export function passesConditions(object, conditions, conjunction='all') {
       return isEqual(target, v);
     } else if(isComparison(v)) {
       return matchesComparison(v, target);
+    } else if(isStringDirective(v)) {
+      return matchesStringDirective(v, target);
     } else if(isUndefined(v)) {
        return isEqual(target, v);
     } else if(isMatchingStatement(v)) {
