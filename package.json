@@ -1,12 +1,12 @@
 {
   "name": "conditioner-is-better",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple but powerful condition matching DSL, as well as array searching",
   "main": "index.js",
   "files": [
     "index.js"
   ],
-  "repository": "https://github.com/jasonayre/npm_package_skeleton",
+  "repository": "https://github.com/jasonayre/conditioner-is-better",
   "author": "Jason Ayre",
   "license": "MIT",
   "scripts": {
