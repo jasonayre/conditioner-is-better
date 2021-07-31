@@ -1,0 +1,1 @@
+BABEL_ENV=test ./node_modules/karma/bin/karma start --single-run=false --reporters=kjhtml --inspect-brk
