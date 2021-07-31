@@ -4,7 +4,7 @@ A simple, powerful, and relatively fast, condition matching DSL / Array search. 
 
 Inspired by https://github.com/deitch/searchjs , ConditionerIsBetter supports most of the basic functionality of that library, and a similar/simpler DSL - But is at least 100-1000x faster (Can't remember exactly, I did the benchmark awhile back while writing this code to replace the use of searchjs validating actions and rules in the game engine ^, as it was a huge performance bottleneck)
 
-Library consists of 2 simple functions, *where* and *matchesConditions*
+Library consists of 2 simple functions, **where** and **matchesConditions**
 
 Both take an array of objects, which specify conditions via one of 3 top level predicates as keys
 `{all, any, none}`, i.e. `[{all: {name: 'tupac'}}]` will return true for an object such as `{name: tupac}`
