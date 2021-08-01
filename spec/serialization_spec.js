@@ -1,8 +1,8 @@
 require('../src/index');
 
-import {matchesConditions, where, expandQuery, compressQuery} from '../src/index';
+import {matchesConditions, where, expandQuery, compressQuery, serializeQuery, deserializeQuery} from '../src/index';
 
-describe('Conditions', function() {
+describe('Serialization', function() {
   let subject, conditions, result;
 
   describe("matchesConditions", function(){
@@ -17,97 +17,97 @@ describe('Conditions', function() {
     });
 
     it('matches', function(){
-      conditions = [{ any: { zone: ['units', 'structures'] }}];
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      conditions = expandQuery([{ any: { zone: ['units', 'structures'] }}]);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
-      conditions = [{all: {zone: 'units', traits: 'poet'}}]
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      conditions = expandQuery([{all: {zone: 'units', traits: 'poet'}}])
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {zone: 'units', traits: 'poet'}},
         {any: {name: 'tupac'}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {zone: 'units', traits: 'poet'}},
         {any: {name: 'biggie'}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(false);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(false);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {zone: 'units', traits: 'poet'}},
         {any: {name: ['biggie', 'tupac']}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {zone: 'notunits', traits: 'poet'}},
         {any: {name: ['biggie', 'tupac']}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(false);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(false);
 
-      conditions = {
+      conditions = expandQuery({
           any: [
             {all: {zone: 'notunits', traits: 'poet'}},
             {any: {name: ['biggie', 'tupac']}}
           ]
-      }
+      })
 
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
-      conditions = [{
+      conditions = expandQuery([{
           any: [
             {all: {zone: 'notunits', traits: 'poet'}},
             {any: {name: ['biggie', 'tupac']}}
           ]
-      }]
+      }])
 
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
-      conditions = [
+      conditions = expandQuery([
         {any: {zone: 'notunits', traits: 'poet'}},
         {any: {name: ['biggie', 'tupac']}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {traits: 'poet'}},
         {all: {traits: 'warrior'}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {traits: ['poet', 'warrior']}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {traits: ['poet']}},
         {all: {name: 'tupac', zone: 'units'}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {traits: ['poet']}},
         {all: {name: 'tupac', zone: 'junkyard'}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(false);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(false);
 
-      conditions = [
+      conditions = expandQuery([
         {none: {traits: ['poet']}},
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(false);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(false);
 
       conditions = [
         {none: {traits: ['blah']}},
@@ -115,11 +115,11 @@ describe('Conditions', function() {
 
       expect(matchesConditions(subject, conditions)).toEqual(true);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {attack: 10}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
       conditions = [
         {all: {attack: {gt: 5}}}
@@ -133,11 +133,11 @@ describe('Conditions', function() {
 
       expect(matchesConditions(subject, conditions)).toEqual(false);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {name: {includes: 'pac'}}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(true);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
       conditions = [
         {all: {name: {includes: ['tu', 'pac']}}}
@@ -145,12 +145,12 @@ describe('Conditions', function() {
 
       expect(matchesConditions(subject, conditions)).toEqual(true);
 
-      conditions = [
+      conditions = expandQuery([
         {all: {name: {includes: ['tu', 'pac']}}},
         {all: {name: {doesNotInclude: ['tup']}}}
-      ]
+      ])
 
-      expect(matchesConditions(subject, conditions)).toEqual(false);
+      expect(matchesConditions(subject, compressQuery(conditions))).toEqual(false);
 
       conditions = [
         {all: {name: {startsWith: ['tu']}}}
@@ -187,9 +187,9 @@ describe('Conditions', function() {
     });
 
     it("searches array", function() {
-      conditions = [{all: {name: 'tupac'}}]
-      expect(where(subject, conditions)[0].name === 'tupac').toEqual(true);
-      expect(where(subject, conditions).length).toEqual(1);
+      conditions = serializeQuery([{all: {name: 'tupac'}}])
+      expect(where(subject, deserializeQuery(conditions))[0].name === 'tupac').toEqual(true);
+      expect(where(subject, deserializeQuery(conditions)).length).toEqual(1);
 
       conditions = [{all: {traits: 'dealer'}}]
       expect(where(subject, conditions)[0].name === 'biggie').toEqual(true);
@@ -217,10 +217,6 @@ describe('Conditions', function() {
 
       conditions = [{all: {attack: {gt: 5}, zone: 'east'}}]
       expect(where(subject, conditions).length).toEqual(0);
-
-      window.expandQuery = expandQuery
-      window.compressQuery = compressQuery
-      window.matchesConditions = matchesConditions
     })
   })
 });
