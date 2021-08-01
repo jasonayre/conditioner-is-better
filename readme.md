@@ -336,6 +336,7 @@ The same goes for strings, but the directives are:
 
 ### Serialization
 This library was written with hardcoded javascript constants in mind, thus the succinctness of the DSL. The downside to that, is it can make building a UI and storing it in the database, a little bit awkward. To get around that, there are serialization methods that will expand/compress the query into a more UI friendly structure, for instance:
+
 ```
 import {expandQuery, compressQuery} from 'conditioner-is-better';
 q = expandQuery([{ any: { zone: ['units', 'structures'] }}])
@@ -361,7 +362,7 @@ q = expandQuery([{ any: { zone: ['units', 'structures'] }}])
 ]
 
 compressQuery(q)
-//will yield back the following
+//will yield back the following, which can then be ran via matchesConditions or where
 {
     "all": [
         {
@@ -404,5 +405,3 @@ q = expandQuery([{all: { zone: 'units', traits: 'poet'}}])
 ]
 
 ```
- After attempting to build a UI where
-The one downside of the terse DSL, is
