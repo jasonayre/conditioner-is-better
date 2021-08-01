@@ -6,6 +6,7 @@ import isBoolean from 'lodash/isBoolean';
 import some from 'lodash/some';
 import every from 'lodash/every';
 import map from 'lodash/map';
+import each from 'lodash/each';
 import keys from 'lodash/keys';
 import values from 'lodash/values';
 import get from 'lodash/get';
@@ -19,9 +20,7 @@ import isFunction from 'lodash/isFunction';
 import isUndefined from 'lodash/isUndefined';
 import startsWith from 'lodash/startsWith';
 import endsWith from 'lodash/endsWith';
-
-// import {includes, isArray, isString, isNumber, isBoolean, some, every, map, keys, values,
-//   get, gt, gte, lt, lte, isObject, first, isFunction, isUndefined} from 'lodash';
+import toPairs from 'lodash/toPairs';
 
 function isEqual(target, source) {
   return target === source;
@@ -91,19 +90,19 @@ export class InvertedMatcher {
   get is_inverted_matcher() { return true }
 }
 
-const ConjunctionFunctions = {
+const QuantifierFunctions = {
   any: some,
   all: every,
   none
 }
 
-const ConjunctionKeys = ["any", "all", "none"];
+const QuantifierKeys = ["any", "all", "none"];
 
 function isMatchingStatement(obj) {
-  return includes(ConjunctionKeys, keys(obj)[0]);
+  return includes(QuantifierKeys, keys(obj)[0]);
 }
 
-export function passesConditions(object, conditions, conjunction='all') {
+export function passesConditions(object, conditions, quantifier='all') {
   let results = map(conditions, (v,k) => {
     let target = get(object, k);
 
@@ -124,8 +123,8 @@ export function passesConditions(object, conditions, conjunction='all') {
     } else if(isUndefined(v)) {
        return isEqual(target, v);
     } else if(isMatchingStatement(v)) {
-      return every(v, (_conditions, _conjunction) => {
-        return passesConditions(object, _conditions, _conjunction);
+      return every(v, (_conditions, _quantifier) => {
+        return passesConditions(object, _conditions, _quantifier);
       })
     } else if(isFunction(v)) {
       return v(target);
@@ -135,23 +134,104 @@ export function passesConditions(object, conditions, conjunction='all') {
     }
   })
 
-  return ConjunctionFunctions[conjunction](results);
+  return QuantifierFunctions[quantifier](results);
 }
 
 function isInvertedMatcher(conditions) { return get(conditions, 'is_inverted_matcher', false) }
 
-export function matchesConditions(object, conditions, conjunction='all') {
+export function matchesConditions(object, conditions, quantifier='all') {
   if(isFunction(conditions)) {
     return conditions(object);
   } else if(isInvertedMatcher(conditions)) {
     return conditions.matches(object);
   }else if(isArray(conditions)) {
-    return every(conditions, (condition) => { return matchesConditions(object, condition, conjunction) })
+    return every(conditions, (condition) => { return matchesConditions(object, condition, quantifier) })
   } else if(isMatchingStatement(conditions)) {
-    return every(conditions, (_conditions, _conjunction) => {
-      return passesConditions(object, _conditions, _conjunction);
+    return every(conditions, (_conditions, _quantifier) => {
+      return passesConditions(object, _conditions, _quantifier);
     })
   } else {
-    return passesConditions(object, conditions, conjunction);
+    return passesConditions(object, conditions, quantifier);
   }
+}
+
+function prepareValueAsObject(value) {
+  if(isString(value)) {
+    return {'=': value}
+  } else {
+    return value
+  }
+}
+
+function serializeComparisons({quantifier='', value={}}) {
+  let comparisons_array = !isArray(value) ? toPairs(value) : map(value, toPairs)
+  let comparisons = map(comparisons_array, (pair) => { return {property: pair[0], value: prepareValueAsObject(pair[1])}})
+  let result = {comparisons: comparisons, quantifier: quantifier}
+
+  return result;
+}
+
+function prepareExpandedValue(value) {
+  if(keys(value)[0] === '=') { return values(value)[0]}
+  return value
+}
+
+function prepareExpandedConditions(conditions) {
+  let compressed = []
+  each(conditions, (condition) => {
+    let result = {}
+
+    result[condition.quantifier] = {}
+
+    each(condition.comparisons, (comparison) => {
+      if(keys(comparison.value))
+      result[condition.quantifier][comparison.property] = prepareExpandedValue(comparison.value)
+    })
+
+    compressed.push(result);
+  })
+
+  return compressed
+}
+
+export function compressQuery(query, result={}) {
+  each(query, (subquery) => {
+    result[subquery.quantifier] = prepareExpandedConditions(subquery.conditions)
+  })
+
+  return result
+}
+
+export function expandQuery(obj, isTopLevel=true) {
+  if(isArray(obj)) {
+    let result =  map(obj, (_obj) => {
+      let quantifier = keys(_obj)[0];
+      return serializeComparisons({quantifier: quantifier, value: values(_obj)[0]});
+    })
+
+    if(isTopLevel) {
+      return [{conditions: result, quantifier: 'all'}]
+    } else {
+      return result
+    }
+  } else if(isObject(obj)) {
+    return map(obj, (v, k) => {
+      let _item = {}
+      _item['quantifier'] = k
+      if(isArray(v)) {
+        _item['conditions'] = expandQuery(v, false);
+        return _item;
+      } else {
+        return serializeComparisons({quantifier: k, value: v})
+      }
+    })
+  }
+}
+
+export function serializeQuery(obj) {
+  return JSON.stringify(expandQuery(obj))
+}
+
+export function deserializeQuery(obj) {
+  return compressQuery(JSON.parse(obj))
 }

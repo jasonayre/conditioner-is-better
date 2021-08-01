@@ -332,3 +332,76 @@ As shown above, when comparing numeric values, you can pass an object as the val
 The same goes for strings, but the directives are:
 
 `includes, doesNotInclude, startsWith, endsWith, doesNotStartWith, doesNotEndWith`
+
+
+### Serialization
+This library was written with hardcoded javascript constants in mind, thus the succinctness of the DSL. The downside to that, is it can make building a UI and storing it in the database, a little bit awkward. To get around that, there are serialization methods that will expand/compress the query into a more UI friendly structure, for instance:
+
+```
+import {expandQuery, compressQuery} from 'conditioner-is-better';
+q = expandQuery([{ any: { zone: ['units', 'structures'] }}])
+// will yield the following
+[
+    {
+        "conditions": [
+            {
+                "comparisons": [
+                    {
+                        "property": "zone",
+                        "value": [
+                            "units",
+                            "structures"
+                        ]
+                    }
+                ],
+                "quantifier": "any"
+            }
+        ],
+        "quantifier": "all"
+    }
+]
+
+compressQuery(q)
+//will yield back the following, which can then be ran via matchesConditions or where
+{
+    "all": [
+        {
+            "any": {
+                "zone": [
+                    "units",
+                    "structures"
+                ]
+            }
+        }
+    ]
+}
+
+q = expandQuery([{all: { zone: 'units', traits: 'poet'}}])
+// will yield the following, note the fact that all values without a special directive will be moved into an object that has a key named '='
+
+[
+    {
+        "conditions": [
+            {
+                "comparisons": [
+                    {
+                        "property": "zone",
+                        "value": {
+                            "=": "units"
+                        }
+                    },
+                    {
+                        "property": "traits",
+                        "value": {
+                            "=": "poet"
+                        }
+                    }
+                ],
+                "quantifier": "all"
+            }
+        ],
+        "quantifier": "all"
+    }
+]
+
+```
