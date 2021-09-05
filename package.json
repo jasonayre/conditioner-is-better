@@ -1,6 +1,6 @@
 {
   "name": "conditioner-is-better",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Simple but powerful condition matching DSL, as well as array searching",
   "main": "index.js",
   "files": [

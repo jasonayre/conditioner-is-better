@@ -157,7 +157,7 @@ export function matchesConditions(object, conditions, quantifier='all') {
 
 function prepareValueAsObject(value) {
   if(isString(value)) {
-    return {'=': value}
+    return {'equals': value}
   } else {
     return value
   }
@@ -172,7 +172,7 @@ function serializeComparisons({quantifier='', value={}}) {
 }
 
 function prepareExpandedValue(value) {
-  if(keys(value)[0] === '=') { return values(value)[0]}
+  if(keys(value)[0] === 'equals' || keys(value)[0] === '=') { return values(value)[0]}
   return value
 }
 
