@@ -22,7 +22,7 @@ describe('Serialization', function() {
       ]
 
       expect(matchesConditions(subject, conditions)).toEqual(true);
-
+      expect(matchesConditions(subject, compressQuery(expandQuery(conditions)))).toEqual(true);
       conditions = expandQuery([{ any: { zone: ['units', 'structures'] }}]);
       expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 

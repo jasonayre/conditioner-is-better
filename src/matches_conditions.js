@@ -72,6 +72,7 @@ function isStringDirective(obj) {
 }
 
 function matchesStringDirective(string_directives, source) {
+  debugger;
   return every(string_directives, (v, k) => {
     if(isArray(v)) {
       return some(v, (_v) => { return STRING_DIRECTIVES[k](source, _v) });
