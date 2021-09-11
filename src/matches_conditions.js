@@ -74,7 +74,7 @@ function isStringDirective(obj) {
 function matchesStringDirective(string_directives, source) {
   return every(string_directives, (v, k) => {
     if(isArray(v)) {
-      return every(v, (_v) => { return STRING_DIRECTIVES[k](source, _v) });
+      return some(v, (_v) => { return STRING_DIRECTIVES[k](source, _v) });
     } else {
       return STRING_DIRECTIVES[k](source, v);
     }
@@ -184,7 +184,6 @@ function prepareExpandedConditions(conditions) {
     result[condition.quantifier] = {}
 
     each(condition.comparisons, (comparison) => {
-      if(keys(comparison.value))
       result[condition.quantifier][comparison.property] = prepareExpandedValue(comparison.value)
     })
 

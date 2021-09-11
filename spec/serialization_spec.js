@@ -17,6 +17,12 @@ describe('Serialization', function() {
     });
 
     it('matches', function(){
+      conditions = [
+        {any: {name: {includes: ['tu', 'something']}}}
+      ]
+
+      expect(matchesConditions(subject, conditions)).toEqual(true);
+
       conditions = expandQuery([{ any: { zone: ['units', 'structures'] }}]);
       expect(matchesConditions(subject, compressQuery(conditions))).toEqual(true);
 
@@ -144,6 +150,8 @@ describe('Serialization', function() {
       ]
 
       expect(matchesConditions(subject, conditions)).toEqual(true);
+
+
 
       conditions = expandQuery([
         {all: {name: {includes: ['tu', 'pac']}}},
